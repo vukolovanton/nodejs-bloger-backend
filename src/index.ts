@@ -12,6 +12,7 @@ import { HelloResolver } from "./resolvers/hello";
 import { PostResolver } from "./resolvers/post";
 import { UserResolver } from "./resolvers/user";
 import { MyContext } from "./types";
+import { COOKIE_NAME } from "./constants";
 
 const main = async () => {
 	const orm = await MikroORM.init(mickroConfig);
@@ -33,7 +34,7 @@ const main = async () => {
 
 	app.use(
 		session({
-			name: "qid",
+			name: COOKIE_NAME,
 			store: new RedisStore({ client: redisClient, disableTouch: true }),
 			secret: "ieqkncxuyqwpxxzwqepm",
 			resave: false,
