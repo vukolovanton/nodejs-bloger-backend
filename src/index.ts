@@ -1,6 +1,6 @@
 import "reflect-metadata";
 import express from "express";
-import redis from "redis";
+import Redis from "ioredis";
 import session from "express-session";
 import connectRedis from "connect-redis";
 import cors from "cors";
@@ -30,12 +30,12 @@ const main = async () => {
 
 	// Connect Redis
 	const RedisStore = connectRedis(session);
-	const redisClient = redis.createClient();
+	const redis = new Redis();
 
 	app.use(
 		session({
 			name: COOKIE_NAME,
-			store: new RedisStore({ client: redisClient, disableTouch: true }),
+			store: new RedisStore({ client: redis, disableTouch: true }),
 			secret: "ieqkncxuyqwpxxzwqepm",
 			resave: false,
 			saveUninitialized: false,
@@ -54,7 +54,7 @@ const main = async () => {
 			resolvers: [HelloResolver, PostResolver, UserResolver],
 			validate: false,
 		}),
-		context: ({ req, res }): MyContext => ({ em: orm.em, req, res }),
+		context: ({ req, res }): MyContext => ({ em: orm.em, req, res, redis }),
 	});
 
 	apolloServer.applyMiddleware({
