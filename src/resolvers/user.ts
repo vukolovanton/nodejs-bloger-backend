@@ -161,18 +161,54 @@ export class UserResolver {
 		if (!user) {
 			return true;
 		}
-
 		const token = v4();
-
 		await redis.set(
 			FORGET_PASSWORD_PREFIX + token,
 			user.id,
 			"ex",
 			1000 * 60 * 60 * 24 * 3
 		); // 3 days
-
 		const template = `<a href="http://localhost:3000/change-password/${token}">reset password</a>`;
 		await sendEmail(email, template);
 		return true;
+	}
+
+	@Mutation(() => UserResponse)
+	async changePasswrod(
+		@Arg("token") token: string,
+		@Arg("newPassword") newPassword: string,
+		@Ctx() { req, em, redis }: MyContext
+	): Promise<UserResponse> {
+		const userId = await redis.get(FORGET_PASSWORD_PREFIX + token);
+		if (!userId) {
+			return {
+				errors: [
+					{
+						field: "token",
+						message: "token expired",
+					},
+				],
+			};
+		}
+
+		const user = await em.findOne(User, { id: parseInt(userId) });
+
+		if (!user) {
+			return {
+				errors: [
+					{
+						field: "token",
+						message: "user no longer exists",
+					},
+				],
+			};
+		}
+		user.password = await argon2.hash(newPassword);
+		await em.persistAndFlush(user);
+
+		// Login user after change password
+		req.session!.userId = user.id;
+
+		return { user };
 	}
 }
