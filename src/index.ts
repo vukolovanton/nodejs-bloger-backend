@@ -7,23 +7,23 @@ import connectRedis from "connect-redis";
 import cors from "cors";
 import { ApolloServer } from "apollo-server-express";
 import { buildSchema } from "type-graphql";
-import { HelloResolver } from "./resolvers/hello";
 import { PostResolver } from "./resolvers/post";
 import { UserResolver } from "./resolvers/user";
 import { MyContext } from "./types";
 import { COOKIE_NAME } from "./constants";
 import { Post } from "./entities/Post";
 import { User } from "./entities/User";
+import { Upvote } from "./entities/Upvote";
 
 const main = async () => {
-	const conn = await createConnection({
+	await createConnection({
 		type: "postgres",
 		database: "blogbackend",
 		username: "dev",
 		password: "utytpbc",
 		logging: true,
 		synchronize: true,
-		entities: [Post, User],
+		entities: [Post, User, Upvote],
 	});
 
 	const app = express();
@@ -58,7 +58,7 @@ const main = async () => {
 	// Connect Graphql
 	const apolloServer = new ApolloServer({
 		schema: await buildSchema({
-			resolvers: [HelloResolver, PostResolver, UserResolver],
+			resolvers: [PostResolver, UserResolver],
 			validate: false,
 		}),
 		context: ({ req, res }): MyContext => ({ req, res, redis }),

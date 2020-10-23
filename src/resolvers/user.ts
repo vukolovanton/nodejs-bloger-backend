@@ -10,6 +10,8 @@ import {
 	Ctx,
 	ObjectType,
 	Query,
+	FieldResolver,
+	Root,
 } from "type-graphql";
 import { COOKIE_NAME, FORGET_PASSWORD_PREFIX } from "../constants";
 import { UserInput } from "./UserInput";
@@ -35,8 +37,17 @@ class UserResponse {
 	user?: User;
 }
 
-@Resolver()
+@Resolver(User)
 export class UserResolver {
+	@FieldResolver(() => String)
+	email(@Root() user: User, @Ctx() { req }: MyContext) {
+		// This is the current user and its ok to show them their email
+		if (req.session!.userId === user.id) {
+			return user.email;
+		}
+		return "";
+	}
+
 	// Helper Me query
 	@Query(() => User, { nullable: true })
 	async me(@Ctx() { req }: MyContext) {

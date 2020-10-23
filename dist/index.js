@@ -21,21 +21,21 @@ const connect_redis_1 = __importDefault(require("connect-redis"));
 const cors_1 = __importDefault(require("cors"));
 const apollo_server_express_1 = require("apollo-server-express");
 const type_graphql_1 = require("type-graphql");
-const hello_1 = require("./resolvers/hello");
 const post_1 = require("./resolvers/post");
 const user_1 = require("./resolvers/user");
 const constants_1 = require("./constants");
 const Post_1 = require("./entities/Post");
 const User_1 = require("./entities/User");
+const Upvote_1 = require("./entities/Upvote");
 const main = () => __awaiter(void 0, void 0, void 0, function* () {
-    const conn = yield typeorm_1.createConnection({
+    yield typeorm_1.createConnection({
         type: "postgres",
         database: "blogbackend",
         username: "dev",
         password: "utytpbc",
         logging: true,
         synchronize: true,
-        entities: [Post_1.Post, User_1.User],
+        entities: [Post_1.Post, User_1.User, Upvote_1.Upvote],
     });
     const app = express_1.default();
     app.use(cors_1.default({
@@ -59,7 +59,7 @@ const main = () => __awaiter(void 0, void 0, void 0, function* () {
     }));
     const apolloServer = new apollo_server_express_1.ApolloServer({
         schema: yield type_graphql_1.buildSchema({
-            resolvers: [hello_1.HelloResolver, post_1.PostResolver, user_1.UserResolver],
+            resolvers: [post_1.PostResolver, user_1.UserResolver],
             validate: false,
         }),
         context: ({ req, res }) => ({ req, res, redis }),
